@@ -86,6 +86,7 @@ fn handler<T:IncludeAdaptor>(
         if nbytes==0{
             break;
         }
+        buffer.remove(buffer.len()-1);
         if let Ok(xml)=std::str::from_utf8(&buffer){
             let mut include=IncludeRemote::new(stream.try_clone().unwrap());
             let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&mut include)?;

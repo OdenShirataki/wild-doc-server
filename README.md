@@ -1,1 +1,1 @@
-# semilattice-server
+# wild-doc-server
