@@ -59,6 +59,8 @@ struct Config{
 #[derive(Deserialize)]
 struct ConfigWildDoc {
     path: Option<String>
+    ,bind_addr: Option<String>
+    ,port: Option<String>
 }
 
 fn main() {
@@ -68,9 +70,17 @@ fn main() {
             let config: Result<Config, toml::de::Error> = toml::from_str(&toml);
             if let Ok(config)=config{
                 if let Some(config)=config.wilddoc{
-                    if let Some(dir)=config.path{
+                    if let (
+                        Some(dir)
+                        ,Some(bind_addr)
+                        ,Some(port)
+                    )=(
+                        config.path
+                        ,config.bind_addr
+                        ,config.port
+                    ){
                         let mut wild_docs=HashMap::new();
-                        let listener=TcpListener::bind("localhost:51818").expect("Error. failed to bind.");
+                        let listener=TcpListener::bind(&(bind_addr+":"+&port)).expect("Error. failed to bind.");
                         for streams in listener.incoming(){
                             match streams {
                                 Err(e) => { eprintln!("error: {}", e)},

@@ -1,2 +1,4 @@
 [wilddoc]
 path="./wd-test/"
+bind_addr="localhost"
+port="51818"
