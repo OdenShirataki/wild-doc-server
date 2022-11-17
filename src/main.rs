@@ -86,11 +86,8 @@ fn main() {
                                 Err(e) => { eprintln!("error: {}", e)},
                                 Ok(stream)=>{
                                     let mut buffer=Vec::new();
-                                    
-                                    let nbytes={
-                                        let mut tcp_reader=BufReader::new(&stream);
-                                        tcp_reader.read_until(0,&mut buffer).unwrap()
-                                    };
+                                    let mut tcp_reader=BufReader::new(&stream);
+                                    let nbytes=tcp_reader.read_until(0,&mut buffer).unwrap();
                                     if nbytes>0{
                                         buffer.remove(buffer.len()-1);
                                         if let Ok(dbname)=std::str::from_utf8(&buffer){
@@ -101,10 +98,15 @@ fn main() {
                                                 }
                                                 Arc::new(Mutex::new(WildDoc::new(dir,IncludeEmpty::new()).unwrap()))
                                             });
-                                            let wd=Arc::clone(&wd);
-                                            thread::spawn(move || {
-                                                handler(stream,wd).unwrap_or_else(|error| eprintln!("handler {:?}", error));
-                                            });
+                                            let mut buffer=Vec::new();
+                                            let nbytes=tcp_reader.read_until(0,&mut buffer).unwrap();
+                                            if nbytes>0{
+                                                buffer.remove(buffer.len()-1);
+                                                let wd=Arc::clone(&wd);
+                                                thread::spawn(move || {
+                                                    handler(stream,wd,buffer).unwrap_or_else(|error| eprintln!("handler {:?}", error));
+                                                });
+                                            }
                                         }
                                     }else{
                                         println!("recv 0 bytes");
@@ -123,28 +125,18 @@ fn main() {
 fn handler<T:IncludeAdaptor>(
     mut stream: TcpStream
     ,wd:Arc<Mutex<WildDoc<T>>>
+    ,xml:Vec<u8>
 )->Result<(), Error>{
-    loop{
-        let mut buffer=Vec::new();
-        let nbytes={
-            let mut tcp_reader=BufReader::new(&stream);
-            tcp_reader.read_until(0,&mut buffer)?
-        };
-        if nbytes==0{
-            break;
-        }
-        buffer.remove(buffer.len()-1);
-        if let Ok(xml)=std::str::from_utf8(&buffer){
-            let mut include=IncludeRemote::new(stream.try_clone().unwrap());
-            let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&mut include)?;
-            stream.write(&[0])?;
-            stream.write(r.as_bytes())?;
-            stream.write(&[0])?;
-        }else{
-            stream.write(b"Error")?;
-            stream.write(&[0])?;
-        }
-        stream.flush().unwrap();
+    if let Ok(xml)=std::str::from_utf8(&xml){
+        let mut include=IncludeRemote::new(stream.try_clone().unwrap());
+        let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&mut include)?;
+        stream.write(&[0])?;
+        stream.write(r.as_bytes())?;
+        stream.write(&[0])?;
+    }else{
+        stream.write(b"Error")?;
+        stream.write(&[0])?;
     }
+    stream.flush().unwrap();
     Ok(())
 }
