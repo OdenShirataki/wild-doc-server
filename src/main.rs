@@ -12,45 +12,8 @@ use wild_doc::{
     ,IncludeAdaptor
 };
 
-pub struct IncludeEmpty{}
-impl IncludeEmpty{
-    pub fn new()->Self{
-        Self{}
-    }
-}
-impl IncludeAdaptor for IncludeEmpty{
-    fn include(&mut self,_:&str)->String{
-        "".to_string()
-    }
-}
-
-struct IncludeRemote{
-    stream:TcpStream
-}
-impl IncludeRemote{
-    pub fn new(stream:TcpStream)->Self{
-        Self{
-            stream
-        }
-    }
-}
-impl<'a> IncludeAdaptor for IncludeRemote{
-    fn include(&mut self,path:&str)->String {
-        let _=self.stream.write(("include:".to_owned()+path).as_bytes());
-        let _=self.stream.write(&[0]);
-        let mut reader = BufReader::new(&self.stream);
-        let mut recv_response = Vec::new();
-        if let Ok(v)=reader.read_until(0,&mut recv_response) {
-            if v > 0 {
-                recv_response.remove(recv_response.len()-1);
-                if let Ok(xml)=std::string::String::from_utf8(recv_response){
-                    return xml;
-                }
-            }
-        }
-        "".to_string()
-    }
-}
+mod include;
+use include::{IncludeEmpty,IncludeRemote};
 
 #[derive(Deserialize)]
 struct Config{
@@ -85,12 +48,12 @@ fn main() {
                             match streams {
                                 Err(e) => { eprintln!("error: {}", e)},
                                 Ok(stream)=>{
-                                    let mut buffer=Vec::new();
+                                    let mut dbname=Vec::new();
                                     let mut tcp_reader=BufReader::new(&stream);
-                                    let nbytes=tcp_reader.read_until(0,&mut buffer).unwrap();
+                                    let nbytes=tcp_reader.read_until(0,&mut dbname).unwrap();
                                     if nbytes>0{
-                                        buffer.remove(buffer.len()-1);
-                                        if let Ok(dbname)=std::str::from_utf8(&buffer){
+                                        dbname.remove(dbname.len()-1);
+                                        if let Ok(dbname)=std::str::from_utf8(&dbname){
                                             let dir=dir.to_owned()+dbname+"/";
                                             let wd=wild_docs.entry(dir).or_insert_with_key(|dir|{
                                                 if !std::path::Path::new(dir).exists(){
@@ -98,14 +61,20 @@ fn main() {
                                                 }
                                                 Arc::new(Mutex::new(WildDoc::new(dir,IncludeEmpty::new()).unwrap()))
                                             });
-                                            let mut buffer=Vec::new();
-                                            let nbytes=tcp_reader.read_until(0,&mut buffer).unwrap();
+                                            let mut input_json=Vec::new();
+                                            let nbytes=tcp_reader.read_until(0,&mut input_json).unwrap();
                                             if nbytes>0{
-                                                buffer.remove(buffer.len()-1);
-                                                let wd=Arc::clone(&wd);
-                                                thread::spawn(move || {
-                                                    handler(stream,wd,buffer).unwrap_or_else(|error| eprintln!("handler {:?}", error));
-                                                });
+                                                input_json.remove(input_json.len()-1);
+
+                                                let mut xml=Vec::new();
+                                                let nbytes=tcp_reader.read_until(0,&mut xml).unwrap();
+                                                if nbytes>0{
+                                                    xml.remove(xml.len()-1);
+                                                    let wd=Arc::clone(&wd);
+                                                    thread::spawn(move || {
+                                                        handler(stream,wd,&input_json,xml).unwrap_or_else(|error| eprintln!("handler {:?}", error));
+                                                    });
+                                                }
                                             }
                                         }
                                     }else{
@@ -125,18 +94,17 @@ fn main() {
 fn handler<T:IncludeAdaptor>(
     mut stream: TcpStream
     ,wd:Arc<Mutex<WildDoc<T>>>
+    ,input_json:&[u8]
     ,xml:Vec<u8>
 )->Result<(), Error>{
     if let Ok(xml)=std::str::from_utf8(&xml){
-        let mut include=IncludeRemote::new(stream.try_clone().unwrap());
-        let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&mut include)?;
+        let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,input_json,&mut IncludeRemote::new(stream.try_clone().unwrap()))?;
         stream.write(&[0])?;
         stream.write(r.as_bytes())?;
         stream.write(&[0])?;
     }else{
-        stream.write(b"Error")?;
-        stream.write(&[0])?;
+        stream.write(b"Error\0")?;
     }
-    stream.flush().unwrap();
+    //stream.flush().unwrap();
     Ok(())
 }
