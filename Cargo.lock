@@ -566,7 +566,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "chrono",
  "libc",
@@ -581,7 +581,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "serde",
  "serde_derive",
