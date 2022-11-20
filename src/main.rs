@@ -42,6 +42,9 @@ fn main() {
                         ,config.bind_addr
                         ,config.port
                     ){
+                        if std::path::Path::new(&dir).exists(){
+                            std::fs::remove_dir_all(&dir).unwrap();
+                        }
                         let mut wild_docs=HashMap::new();
                         let listener=TcpListener::bind(&(bind_addr+":"+&port)).expect("Error. failed to bind.");
                         for streams in listener.incoming(){
@@ -61,21 +64,10 @@ fn main() {
                                                 }
                                                 Arc::new(Mutex::new(WildDoc::new(dir,IncludeEmpty::new()).unwrap()))
                                             });
-                                            let mut input_json=Vec::new();
-                                            let nbytes=tcp_reader.read_until(0,&mut input_json).unwrap();
-                                            if nbytes>0{
-                                                input_json.remove(input_json.len()-1);
-
-                                                let mut xml=Vec::new();
-                                                let nbytes=tcp_reader.read_until(0,&mut xml).unwrap();
-                                                if nbytes>0{
-                                                    xml.remove(xml.len()-1);
-                                                    let wd=Arc::clone(&wd);
-                                                    thread::spawn(move || {
-                                                        handler(stream,wd,&input_json,xml).unwrap_or_else(|error| eprintln!("handler {:?}", error));
-                                                    });
-                                                }
-                                            }
+                                            let wd=Arc::clone(&wd);
+                                            thread::spawn(move || {
+                                                handler(stream,wd).unwrap_or_else(|error| eprintln!("handler {:?}", error));
+                                            });
                                         }
                                     }else{
                                         println!("recv 0 bytes");
@@ -92,19 +84,35 @@ fn main() {
 }
 
 fn handler<T:IncludeAdaptor>(
-    mut stream: TcpStream
+    stream: TcpStream
     ,wd:Arc<Mutex<WildDoc<T>>>
-    ,input_json:&[u8]
-    ,xml:Vec<u8>
 )->Result<(), Error>{
-    if let Ok(xml)=std::str::from_utf8(&xml){
-        let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,input_json,&mut IncludeRemote::new(stream.try_clone().unwrap()))?;
-        stream.write(&[0])?;
-        stream.write(r.as_bytes())?;
-        stream.write(&[0])?;
-    }else{
-        stream.write(b"Error\0")?;
+    let mut writer=stream.try_clone().unwrap();
+    let mut tcp_reader=BufReader::new(&stream);
+    loop{
+        let mut input_json=Vec::new();
+        let nbytes=tcp_reader.read_until(0,&mut input_json)?;
+        if nbytes==0{
+            break;
+        }
+        input_json.remove(input_json.len()-1);
+
+        let mut xml=Vec::new();
+        let nbytes=tcp_reader.read_until(0,&mut xml)?;
+        if nbytes==0{
+            break;
+        }
+        xml.remove(xml.len()-1);
+        if let Ok(xml)=std::str::from_utf8(&xml){
+            let mut include=IncludeRemote::new(stream.try_clone().unwrap());
+            let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&input_json,&mut include)?;
+            writer.write(&[0])?;
+            writer.write(r.as_bytes())?;
+            writer.write(&[0])?;
+        }else{
+            writer.write(b"Error")?;
+            writer.write(&[0])?;
+        }
     }
-    //stream.flush().unwrap();
     Ok(())
 }
