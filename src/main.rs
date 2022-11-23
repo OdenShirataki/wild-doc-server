@@ -84,25 +84,29 @@ fn main() {
 }
 
 fn handler<T:IncludeAdaptor>(
-    stream: TcpStream
+    mut stream: TcpStream
     ,wd:Arc<Mutex<WildDoc<T>>>
 )->Result<(), Error>{
+    stream.write_all(&[0])?;
+
     let mut writer=stream.try_clone().unwrap();
     let mut tcp_reader=BufReader::new(&stream);
     loop{
         let mut input_json=Vec::new();
+        let mut xml=Vec::new();
+
         let nbytes=tcp_reader.read_until(0,&mut input_json)?;
         if nbytes==0{
             break;
         }
         input_json.remove(input_json.len()-1);
 
-        let mut xml=Vec::new();
         let nbytes=tcp_reader.read_until(0,&mut xml)?;
         if nbytes==0{
             break;
         }
         xml.remove(xml.len()-1);
+    
         if let Ok(xml)=std::str::from_utf8(&xml){
             let mut include=IncludeRemote::new(stream.try_clone().unwrap());
             let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&input_json,&mut include)?;
