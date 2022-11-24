@@ -111,7 +111,9 @@ fn handler<T:IncludeAdaptor>(
             let mut include=IncludeRemote::new(stream.try_clone().unwrap());
             let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&input_json,&mut include)?;
             writer.write(&[0])?;
-            writer.write(&r)?;
+            writer.write(r.body())?;
+            writer.write(&[0])?;
+            writer.write(r.options_json().as_bytes())?;
             writer.write(&[0])?;
         }else{
             writer.write(b"Error")?;
