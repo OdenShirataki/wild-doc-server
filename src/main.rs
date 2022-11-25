@@ -93,23 +93,28 @@ fn handler<T:IncludeAdaptor>(
     let mut tcp_reader=BufReader::new(&stream);
     loop{
         let mut input_json=Vec::new();
-        let mut xml=Vec::new();
-
         let nbytes=tcp_reader.read_until(0,&mut input_json)?;
         if nbytes==0{
             break;
         }
         input_json.remove(input_json.len()-1);
 
+        let mut xml=Vec::new();
         let nbytes=tcp_reader.read_until(0,&mut xml)?;
         if nbytes==0{
             break;
         }
         xml.remove(xml.len()-1);
     
-        if let Ok(xml)=std::str::from_utf8(&xml){
+        if let(
+            Ok(input_json)
+            ,Ok(xml)
+        )=(
+            std::str::from_utf8(&input_json)
+            ,std::str::from_utf8(&xml)
+        ){
             let mut include=IncludeRemote::new(stream.try_clone().unwrap());
-            let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,&input_json,&mut include)?;
+            let r=wd.clone().lock().unwrap().exec_specify_include_adaptor(xml,input_json,&mut include)?;
             writer.write(&[0])?;
             writer.write(r.body())?;
             writer.write(&[0])?;
