@@ -164,7 +164,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "avltriee"
-version = "0.29.0"
+version = "0.29.1"
 
 [[package]]
 name = "base16ct"
@@ -1165,7 +1165,7 @@ dependencies = [
 
 [[package]]
 name = "file_mmap"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "memmap2",
 ]
@@ -1710,7 +1710,7 @@ dependencies = [
 
 [[package]]
 name = "idx_sized"
-version = "0.19.0"
+version = "0.19.1"
 dependencies = [
  "avltriee",
  "file_mmap",
@@ -2954,7 +2954,7 @@ dependencies = [
 
 [[package]]
 name = "semilattice-database"
-version = "0.37.1"
+version = "0.37.2"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3712,7 +3712,7 @@ dependencies = [
 
 [[package]]
 name = "various_data_file"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "file_mmap",
 ]
@@ -3725,7 +3725,7 @@ checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
 name = "versatile-data"
-version = "0.54.1"
+version = "0.54.2"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3970,7 +3970,7 @@ checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "wild-doc"
-version = "0.21.2"
+version = "0.22.0"
 dependencies = [
  "chrono",
  "deno_runtime",
@@ -3982,7 +3982,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.21"
+version = "0.0.22"
 dependencies = [
  "serde",
  "serde_derive",
