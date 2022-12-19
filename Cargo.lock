@@ -1710,7 +1710,7 @@ dependencies = [
 
 [[package]]
 name = "idx_sized"
-version = "0.19.1"
+version = "0.19.2"
 dependencies = [
  "avltriee",
  "file_mmap",
@@ -2954,7 +2954,7 @@ dependencies = [
 
 [[package]]
 name = "semilattice-database"
-version = "0.37.2"
+version = "0.37.5"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3970,7 +3970,7 @@ checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "wild-doc"
-version = "0.22.0"
+version = "0.26.0"
 dependencies = [
  "chrono",
  "deno_runtime",
@@ -3982,7 +3982,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.22"
+version = "0.0.23"
 dependencies = [
  "serde",
  "serde_derive",

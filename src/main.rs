@@ -21,6 +21,7 @@ struct ConfigWildDoc {
     path: Option<String>,
     bind_addr: Option<String>,
     port: Option<String>,
+    delete_dir_on_start:Option<String>
 }
 
 fn main() {
@@ -33,9 +34,14 @@ fn main() {
                     if let (Some(dir), Some(bind_addr), Some(port)) =
                         (config.path, config.bind_addr, config.port)
                     {
-                        if std::path::Path::new(&dir).exists() {
-                            std::fs::remove_dir_all(&dir).unwrap();
+                        if let Some(delete_dir_on_start)=config.delete_dir_on_start{
+                            if delete_dir_on_start=="1"{
+                                if std::path::Path::new(&dir).exists() {
+                                    std::fs::remove_dir_all(&dir).unwrap();
+                                }
+                            }
                         }
+
                         let mut wild_docs = HashMap::new();
                         let listener = TcpListener::bind(&(bind_addr + ":" + &port))
                             .expect("Error. failed to bind.");
