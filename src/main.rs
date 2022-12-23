@@ -121,8 +121,12 @@ fn handler<T: IncludeAdaptor>(
                 &mut include,
             )?;
             writer.write(&[0])?;
-            writer.write(r.body())?;
-            writer.write(&[0])?;
+
+            let body=r.body();
+            let len=body.len() as u64;
+            writer.write(&len.to_be_bytes())?;
+            writer.write(body)?;
+
             writer.write(r.options_json().as_bytes())?;
             writer.write(&[0])?;
         } else {

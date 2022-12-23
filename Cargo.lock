@@ -2954,7 +2954,7 @@ dependencies = [
 
 [[package]]
 name = "semilattice-database"
-version = "0.38.2"
+version = "0.38.4"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3970,7 +3970,7 @@ checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "wild-doc"
-version = "0.27.1"
+version = "0.27.2"
 dependencies = [
  "chrono",
  "deno_runtime",
@@ -3982,7 +3982,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.25"
+version = "0.0.26"
 dependencies = [
  "serde",
  "serde_derive",
