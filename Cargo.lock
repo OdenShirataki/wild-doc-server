@@ -3873,7 +3873,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "serde",
  "serde_derive",
