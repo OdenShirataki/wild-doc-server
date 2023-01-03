@@ -1156,10 +1156,17 @@ dependencies = [
 
 [[package]]
 name = "file_mmap"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
+ "file_offset",
  "memmap2",
 ]
+
+[[package]]
+name = "file_offset"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ad02ed760f100d78f087138613184d8e48d301c97f13804e250773d649900cd"
 
 [[package]]
 name = "filetime"
@@ -1697,7 +1704,7 @@ dependencies = [
 
 [[package]]
 name = "idx_sized"
-version = "0.21.3"
+version = "0.21.4"
 dependencies = [
  "avltriee",
  "file_mmap",
@@ -2863,7 +2870,7 @@ dependencies = [
 
 [[package]]
 name = "semilattice-database"
-version = "0.40.1"
+version = "0.40.2"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3598,7 +3605,7 @@ dependencies = [
 
 [[package]]
 name = "various_data_file"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "file_mmap",
 ]
@@ -3611,7 +3618,7 @@ checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
 name = "versatile-data"
-version = "0.58.2"
+version = "0.58.3"
 dependencies = [
  "chrono",
  "file_mmap",
@@ -3872,7 +3879,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.36"
+version = "0.0.37"
 dependencies = [
  "serde",
  "serde_derive",
