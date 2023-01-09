@@ -4572,7 +4572,7 @@ checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "wild-doc"
-version = "0.31.2"
+version = "0.32.0"
 dependencies = [
  "chrono",
  "deno_ast",
@@ -4587,7 +4587,7 @@ dependencies = [
 
 [[package]]
 name = "wild-doc-server"
-version = "0.0.39"
+version = "0.0.40"
 dependencies = [
  "serde",
  "serde_derive",

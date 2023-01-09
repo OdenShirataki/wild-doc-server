@@ -1,27 +1,29 @@
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader, Write},
+    io::{BufReader, Read, Write},
     net::TcpStream,
     path::{Path, PathBuf},
 };
 
 use wild_doc::IncludeAdaptor;
 
-pub struct IncludeEmpty {}
+pub struct IncludeEmpty {
+    cache: Option<String>,
+}
 impl IncludeEmpty {
     pub fn new() -> Self {
-        Self {}
+        Self { cache: None }
     }
 }
 impl IncludeAdaptor for IncludeEmpty {
-    fn include<P: AsRef<Path>>(&mut self, _: P) -> &str {
-        ""
+    fn include<P: AsRef<Path>>(&mut self, _: P) -> &Option<String> {
+        &mut self.cache
     }
 }
 
 pub struct IncludeRemote {
     stream: TcpStream,
-    cache: HashMap<PathBuf, String>,
+    cache: HashMap<PathBuf, Option<String>>,
 }
 impl IncludeRemote {
     pub fn new(stream: TcpStream) -> Self {
@@ -32,24 +34,38 @@ impl IncludeRemote {
     }
 }
 impl<'a> IncludeAdaptor for IncludeRemote {
-    fn include<P: AsRef<Path>>(&mut self, path: P) -> &str {
+    fn include<P: AsRef<Path>>(&mut self, path: P) -> &Option<String> {
         let path = path.as_ref().to_path_buf();
         self.cache
             .entry(path.to_owned())
             .or_insert_with_key(|path| {
-                self.stream.write(("include:".to_owned() + path.to_str().unwrap()).as_bytes()).unwrap();
+                self.stream
+                    .write(("include:".to_owned() + path.to_str().unwrap()).as_bytes())
+                    .unwrap();
                 self.stream.write(&[0]).unwrap();
                 let mut reader = BufReader::new(&self.stream);
-                let mut recv_response = Vec::new();
-                if let Ok(v) = reader.read_until(0, &mut recv_response) {
-                    if v > 0 {
-                        recv_response.remove(recv_response.len() - 1);
-                        if let Ok(xml) = std::string::String::from_utf8(recv_response) {
-                            return xml;
+
+                let mut exists: [u8; 1] = [0];
+                if let Ok(()) = reader.read_exact(&mut exists) {
+                    let exists = u8::from_be_bytes(exists);
+                    if exists==1{
+                        let mut len: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
+                        if let Ok(()) = reader.read_exact(&mut len) {
+                            let len = u64::from_be_bytes(len) as usize;
+                            let mut recv_response = Vec::<u8>::with_capacity(len);
+                            unsafe {
+                                recv_response.set_len(len);
+                            }
+                            if let Ok(()) = reader.read_exact(recv_response.as_mut_slice()) {
+                                if let Ok(xml) = std::string::String::from_utf8(recv_response) {
+                                    return Some(xml);
+                                }
+                            }
                         }
                     }
                 }
-                "".to_string()
+
+                None
             })
     }
 }

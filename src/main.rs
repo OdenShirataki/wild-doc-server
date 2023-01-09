@@ -21,7 +21,7 @@ struct ConfigWildDoc {
     path: Option<String>,
     bind_addr: Option<String>,
     port: Option<String>,
-    delete_dir_on_start:Option<String>
+    delete_dir_on_start: Option<String>,
 }
 
 fn main() {
@@ -34,8 +34,8 @@ fn main() {
                     if let (Some(dir), Some(bind_addr), Some(port)) =
                         (config.path, config.bind_addr, config.port)
                     {
-                        if let Some(delete_dir_on_start)=config.delete_dir_on_start{
-                            if delete_dir_on_start=="1"{
+                        if let Some(delete_dir_on_start) = config.delete_dir_on_start {
+                            if delete_dir_on_start == "1" {
                                 if std::path::Path::new(&dir).exists() {
                                     std::fs::remove_dir_all(&dir).unwrap();
                                 }
@@ -120,18 +120,18 @@ fn handler<T: IncludeAdaptor>(
                 input_json,
                 &mut include,
             )?;
-            writer.write(&[0])?;
+            writer.write_all(&[0])?;
 
-            let body=r.body();
-            let len=body.len() as u64;
-            writer.write(&len.to_be_bytes())?;
-            writer.write(body)?;
+            let body = r.body();
+            let len = body.len() as u64;
+            writer.write_all(&len.to_be_bytes())?;
+            writer.write_all(body)?;
 
-            writer.write(r.options_json().as_bytes())?;
-            writer.write(&[0])?;
+            writer.write_all(r.options_json().as_bytes())?;
+            writer.write_all(&[0])?;
         } else {
-            writer.write(b"Error")?;
-            writer.write(&[0])?;
+            writer.write_all(b"Error")?;
+            writer.write_all(&[0])?;
         }
     }
     Ok(())
