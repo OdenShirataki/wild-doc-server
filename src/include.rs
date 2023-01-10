@@ -39,7 +39,7 @@ impl IncludeAdaptor for IncludeRemote {
         self.cache
             .entry(path.to_owned())
             .or_insert_with_key(|path| {
-                if let Ok(path_str) = path.to_str(){
+                if let Some(path_str) = path.to_str(){
                     if path_str.len() > 0 {
                         self.stream
                             .write(("include:".to_owned() + path_str).as_bytes())
