@@ -7,7 +7,7 @@ use std::thread;
 #[macro_use]
 extern crate serde_derive;
 
-use wild_doc::{IncludeAdaptor, WildDoc};
+use wild_doc::WildDoc;
 
 mod include;
 use include::{IncludeEmpty, IncludeRemote};
@@ -88,10 +88,7 @@ fn main() {
     }
 }
 
-fn handler<T: IncludeAdaptor>(
-    mut stream: TcpStream,
-    wd: Arc<Mutex<WildDoc<T>>>,
-) -> Result<(), Error> {
+fn handler(mut stream: TcpStream, wd: Arc<Mutex<WildDoc<IncludeEmpty>>>) -> Result<(), Error> {
     stream.write_all(&[0])?;
 
     let mut writer = stream.try_clone().unwrap();
